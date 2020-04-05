@@ -13,7 +13,6 @@ import imgaug as ia
 import imgaug.augmenters as iaa
 from imgaug import parameters as iap
 
-from get_roi import *
 import time
 
 ia.seed(1)
@@ -84,7 +83,7 @@ def torch_transform():
                                
 
 class MyDataset(Dataset):
-    def __init__(self, img_src=None,data_lst=None,aug_mode=None,input_size=None,train=None,infer=None,num_roi_box=None):
+    def __init__(self, img_src=None,data_lst=None,aug_mode=None,input_size=None,train=None,infer=None):
         fo = open(data_lst, 'rt')
         imgs = []
         for line in fo:
@@ -99,7 +98,6 @@ class MyDataset(Dataset):
         if self.train:
             self.data_aug = eval(aug_mode)
         self.input_size = input_size
-        self.num_roi_box=num_roi_box
 
     def __getitem__(self, index):
         img_path, label_path = self.imgs[index]
@@ -118,9 +116,7 @@ class MyDataset(Dataset):
             return img,img_path
             
         mask =  np.array(Image.open(os.path.join(label_path)))
-        #tic = time.time()
-        img,mask = ROI_crop(img,mask,vid,pred_box=self.num_roi_box)
-        #print('elapse: %.3f ms'%((time.time()-tic)*1000))
+
         if self.train:
             img = np.expand_dims(img,axis=0)
             mask = [np.expand_dims(mask,axis=2),]#
@@ -146,7 +142,7 @@ class MyDataset(Dataset):
     def __len__(self):
         return len(self.imgs)
 
-def get_ds(lst_path=None, trn_lst=None,val_lst=None,train=None,val=None,infer=None,num_roi_box=None,
+def get_ds(lst_path=None, trn_lst=None,val_lst=None,train=None,val=None,infer=None,
            batch_size=None,aug_mode=None,data_root=None,input_size=None,**kwargs):
 
     num_workers = kwargs.setdefault('num_workers', 16)
@@ -162,7 +158,7 @@ def get_ds(lst_path=None, trn_lst=None,val_lst=None,train=None,val=None,infer=No
     if infer:
         infer_lst = os.path.join(lst_path,val_lst)
         print('inference with %s'%trn_lst)
-        infer_data=MyDataset(data_lst=infer_lst,img_src = data_root,input_size=input_size,num_roi_box=num_roi_box,infer=True)
+        infer_data=MyDataset(data_lst=infer_lst,img_src = data_root,input_size=input_size,infer=True)
         train_loader = DataLoader(infer_data,batch_size=batch_size,**kwargs)
         ds.append(train_loader)
         
@@ -171,7 +167,7 @@ def get_ds(lst_path=None, trn_lst=None,val_lst=None,train=None,val=None,infer=No
     if train:
         trn_lst = os.path.join(lst_path,trn_lst)
         print('train with %s'%trn_lst)
-        train_data=MyDataset(data_lst=trn_lst,img_src = data_root,num_roi_box=num_roi_box,
+        train_data=MyDataset(data_lst=trn_lst,img_src = data_root,
                              aug_mode=aug_mode,input_size=input_size,train=True)
         train_loader = DataLoader(train_data,batch_size=batch_size, shuffle=True, **kwargs)
         ds.append(train_loader)
@@ -179,7 +175,7 @@ def get_ds(lst_path=None, trn_lst=None,val_lst=None,train=None,val=None,infer=No
         val_lst = os.path.join(lst_path,val_lst)
         print('validation with %s'%val_lst)
         
-        test_data=MyDataset(data_lst=val_lst, img_src = data_root,num_roi_box=num_roi_box,
+        test_data=MyDataset(data_lst=val_lst, img_src = data_root,
                             input_size=input_size,train=False)
         test_loader = DataLoader(test_data,batch_size=batch_size, **kwargs)
         ds.append(test_loader)
