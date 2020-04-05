@@ -56,7 +56,6 @@ def parser_process():
     parser.add_argument('--snap_dir', default='./snap/', help='folder to save to the model')
     parser.add_argument('--input_size', default=224,type=int)
     parser.add_argument('--aug_mode', default='aug4b')
-    parser.add_argument('--num_roi_box', default=4,type=int,choices=[0,4,15])
     
     parser.add_argument('--vis', default =0,type=int)
     parser.add_argument('--RFimp', default=0,type=int)
@@ -83,19 +82,11 @@ def vis(train_loader):
     print(imgs.size())
     grid = torchvision.utils.make_grid(imgs, nrow=3)
 
-    #plt.figure(figsize=(15,15))
-    #plt.imshow(grid.permute(1,2,0))
-    #plt.title(img_path,fontsize=8)
-    #plt.show()
-    
-    print(masks.size())
-    grid = torchvision.utils.make_grid(masks, nrow=3)
     plt.figure(figsize=(15,15))
     plt.imshow(grid.permute(1,2,0))
     plt.title(img_path,fontsize=8)
-    #print(data)
-    #print(target)
     plt.show()
+    
     exit()
 
 def flop_accum(net=None,bs=None,in_size=None):
@@ -139,7 +130,7 @@ if __name__ == '__main__':
     ######### data ETL
     tic = time.time()
     train_loader, test_loader = dataset.get_ds(lst_path=args.lst_path,data_root=args.data_root,trn_lst=args.trn_lst,val_lst=args.val_lst,
-                                                    train=True,val=True,batch_size=args.batch_size, aug_mode=args.aug_mode,num_roi_box=args.num_roi_box,
+                                                    train=True,val=True,batch_size=args.batch_size, aug_mode=args.aug_mode,
                                                     input_size = args.input_size)
   
     print('Data ETL elapse: %.3f s'%(time.time()-tic))
