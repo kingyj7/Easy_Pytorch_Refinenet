@@ -1,0 +1,2 @@
+#train_sample_A corresponding_mask_A 
+A.jpg	A.png
