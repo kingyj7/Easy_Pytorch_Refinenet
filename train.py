@@ -34,7 +34,7 @@ def parser_process():
     #almost fixed
     parser.add_argument('--wd', type=float, default=1e-5, help='weight decay')
     parser.add_argument('--in_channel', default=3,help='change corresponding xxnet.py')
-    parser.add_argument('--num_classes', default=2)
+    parser.add_argument('--num_classes', default=2,help='0:background,1:foreground, other digit should be OK')
     parser.add_argument('--ignore_index', default=255,type=int)
     
     parser.add_argument('--gpu', default=None, help='index of gpus to use')
@@ -64,8 +64,17 @@ def parser_process():
     
     parser.add_argument('--backbone', default='101-bench', help='101-bench,50-bench,')
     pre_models = ['./snap/pretrained/resnet101-5d3.pth','./snap/pretrained/resnet50-19c']
-    parser.add_argument('--pre_model', default=pre_models[0], help='folder to load model')
+    parser.add_argument('--pre_model', default=pre_models[0], help='folder to load pretrained model')
     
+    '''
+    model_urls = {
+    'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
+    'resnet34': 'https://download.pytorch.org/models/resnet34-333f7ec4.pth',
+    'resnet50': 'https://download.pytorch.org/models/resnet50-19c8e357.pth',
+    'resnet101': 'https://download.pytorch.org/models/resnet101-5d3b4d8f.pth',
+    'resnet152': 'https://download.pytorch.org/models/resnet152-b121ed2d.pth',
+}
+    '''
     
     
     return parser.parse_args()
@@ -85,14 +94,6 @@ def vis(train_loader):
     
     exit()
 
-def flop_accum(net=None,bs=None,in_size=None):
-    #* compute FLOPS and Params 
-    from thop import profile,clever_format
-    input1 = torch.randn(bs, 3, in_size, in_size)
-    macs, params = profile(net, inputs=(input1, ))
-    macs, params = clever_format([macs, params], "%.1f")
-    print("Seg1,macs:{}, params:{}".format(macs, params)) 
-    #exit()
 
 if __name__ == '__main__':
 
@@ -102,7 +103,6 @@ if __name__ == '__main__':
     if args.tmp !=1: assert not os.path.exists(args.snap_dir)# prevent useful log is coverd
     misc.logger.init(args.snap_dir, 'snap_%s'%os.path.basename(args.snap_dir))
     print = misc.logger.info # print is coverred, can not pass 2 arguments
-
 
     torch.backends.cudnn.benchmark = False
     # select gpu
@@ -236,13 +236,8 @@ if __name__ == '__main__':
                         recall_hand = per_class_recall(cm)[1]
                         #print(" IoUs: {}".format(ious))
                         hiou = ious[1]
-                        print('overall hand-IoU: {:.3f}\t overall hand-Recall: {:.3f}\t'.format(hiou,recall_hand))
-                        
-                        #ious = compute_iu(cm)
-                        #recall_hand = compute_recall(cm)[1]
-                        #print(" IoUs: {}".format(ious))
-                        #hiou = ious[1]
-                        #print('overall hand-IoU: {:.3f}\t overall hand-Recall: {:.3f}\t'.format(hiou,recall_hand))
+                        print('overall foreground-IoU: {:.3f}\t overall foreground-Recall: {:.3f}\t'.format(hiou,recall_hand))
+                 
 
                         writer.add_scalar('val/hIOU',hiou,global_step)
                         writer.add_scalar('val/hRecall',recall_hand,global_step)
