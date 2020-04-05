@@ -25,10 +25,6 @@ from miou import *
 
 from IPython import embed
 from tensorboardX import SummaryWriter
-
-# Data: 0402 
-#try r50 backbone and using the trained classification r50 to initialize segmentation r50
-
 from resnet import *
 import torchvision.models as models
 
@@ -144,17 +140,8 @@ if __name__ == '__main__':
         resnet_back = models.resnet101
     elif args.backbone == '50-bench':
         resnet_back = models.resnet50
-        #resnet_back = models.resnet50(pretrained=False)
-        #for k,v in resnet_back.named_parameters():
-        #    print(k)
-        #print(resnet_back)
-        #exit()
     elif args.backbone == '50-frdc':
         resnet_back = resnet50
-        #for k,v in resnet_back.named_parameters():
-        #   print(k)
-        #print(resnet_back)
-        #exit()
     else:
         resnet_back = None
     if args.RFimp == 1:
